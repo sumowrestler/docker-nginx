@@ -9,6 +9,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
+		--add-dynamic-module=/nginx-clojure-master/src/c \
 		--conf-path=/etc/nginx/nginx.conf \
 		--error-log-path=/var/log/nginx/error.log \
 		--http-log-path=/var/log/nginx/access.log \
@@ -65,9 +66,14 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
+		openjdk8 \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
+	&& curl -fSL https://github.com/nginx-clojure/nginx-clojure/archive/master.zip -o nginx-clojure.zip \
+	&& unzip nginx-clojure.zip \
 	&& export GNUPGHOME="$(mktemp -d)" \
+	&& ls -l /usr/lib/jvm/java-1.8-openjdk \
+	&& export PATH=$PATH:/usr/lib/jvm/java-1.8-openjdk/bin \
 	&& found=''; \
 	for server in \
 		ha.pool.sks-keyservers.net \
@@ -95,6 +101,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& ./configure $CONFIG \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& make install \
+	&& make modules \
 	&& rm -rf /etc/nginx/html/ \
 	&& mkdir /etc/nginx/conf.d/ \
 	&& mkdir -p /usr/share/nginx/html/ \
